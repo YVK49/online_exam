@@ -1,0 +1,14 @@
+{% extends 'exams/base.html' %}
+{% block content %}
+<h2>Admin Dashboard</h2>
+<h3>Exam Categories</h3>
+<ul>
+    {% for category in categories %}
+        <li>
+            <a href="{% url 'exams:category_detail' category_id=category.id %}" class="button button-secondary">
+                {{ category.name }}
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

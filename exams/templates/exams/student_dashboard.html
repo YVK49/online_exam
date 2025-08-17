@@ -1,0 +1,17 @@
+{% extends 'exams/base.html' %}
+{% block content %}
+<h2>Student Dashboard</h2>
+<h3>Available Exams</h3>
+<ul>
+    {% for exam in exams %}
+        <li><a href="{% url 'exams:take_exam' exam.id %}">{{ exam.title }}</a></li>
+    {% endfor %}
+</ul>
+<h3>Your Results</h3>
+<ul>
+    {% for result in results %}
+        <li>{{ result.exam.title }}: {{ result.marks_obtained }}/{{ result.total_marks }}</li>
+    {% endfor %}
+</ul>
+<a href="{% url 'exams:login' %}" class="button button-secondary">Logout</a>
+{% endblock %}

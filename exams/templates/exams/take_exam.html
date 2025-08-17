@@ -1,0 +1,64 @@
+{% extends 'exams/base.html' %}
+{% block content %}
+<h2>{{ exam.title }}</h2>
+<div class="timer" id="timer"></div>
+<form method="post">
+    {% csrf_token %}
+    {% for question in questions %}
+        <div class="question">
+            <h3>{{ question.subject }} ({{ question.question_type }}): {{ question.text|safe }}</h3>
+            {% if question.image %}
+                <img src="{{ question.image.url }}" alt="Question Image" style="max-width: 200px;">
+            {% endif %}
+            {% if question.question_type == 'MCQ_SINGLE' %}
+                <div>
+                    <input type="radio" name="question_{{ question.id }}" value="option1" id="q{{ question.id }}_1" required>
+                    <label for="q{{ question.id }}_1">{{ question.option1|safe }}</label>
+                </div>
+                <div>
+                    <input type="radio" name="question_{{ question.id }}" value="option2" id="q{{ question.id }}_2">
+                    <label for="q{{ question.id }}_2">{{ question.option2|safe }}</label>
+                </div>
+                <div>
+                    <input type="radio" name="question_{{ question.id }}" value="option3" id="q{{ question.id }}_3">
+                    <label for="q{{ question.id }}_3">{{ question.option3|safe }}</label>
+                </div>
+                <div>
+                    <input type="radio" name="question_{{ question.id }}" value="option4" id="q{{ question.id }}_4">
+                    <label for="q{{ question.id }}_4">{{ question.option4|safe }}</label>
+                </div>
+            {% elif question.question_type == 'MCQ_MULTI' %}
+                <div>
+                    <input type="checkbox" name="question_{{ question.id }}[]" value="option1" id="q{{ question.id }}_1">
+                    <label for="q{{ question.id }}_1">{{ question.option1|safe }}</label>
+                </div>
+                <div>
+                    <input type="checkbox" name="question_{{ question.id }}[]" value="option2" id="q{{ question.id }}_2">
+                    <label for="q{{ question.id }}_2">{{ question.option2|safe }}</label>
+                </div>
+                <div>
+                    <input type="checkbox" name="question_{{ question.id }}[]" value="option3" id="q{{ question.id }}_3">
+                    <label for="q{{ question.id }}_3">{{ question.option3|safe }}</label>
+                </div>
+                <div>
+                    <input type="checkbox" name="question_{{ question.id }}[]" value="option4" id="q{{ question.id }}_4">
+                    <label for="q{{ question.id }}_4">{{ question.option4|safe }}</label>
+                </div>
+            {% elif question.question_type == 'NUMERICAL' %}
+                <div>
+                    <label for="q{{ question.id }}">Answer</label>
+                    <input type="text" name="question_{{ question.id }}" id="q{{ question.id }}" class="form-control" required>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <button type="submit" class="button button-primary">Submit Exam</button>
+</form>
+<script>
+    window.onload = function() {
+        let timeLeft = {{ time_left }};
+        let display = document.getElementById('timer');
+        startTimer(timeLeft, display);
+    };
+</script>
+{% endblock %}

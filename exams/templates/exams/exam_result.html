@@ -1,0 +1,27 @@
+{% extends 'exams/base.html' %}
+{% block content %}
+<h2>Exam Results: {{ exam.title }}</h2>
+<p>Marks Obtained: {{ marks_obtained }} / {{ total_marks }}</p>
+<h3>Your Answers</h3>
+<ul>
+    {% for answer in answers %}
+        <li>
+            {{ answer.question.subject }} ({{ answer.question.question_type }}): {{ answer.question.text|safe }}
+            {% if answer.question.image %}
+                <br><img src="{{ answer.question.image.url }}" alt="Question Image" style="max-width: 200px;">
+            {% endif %}
+            {% if answer.question.question_type != 'NUMERICAL' %}
+                <p>Your answer: {{ answer.selected_option }}</p>
+                <p>Correct: {{ answer.question.correct_option }}</p>
+            {% else %}
+                <p>Your answer: {{ answer.selected_option }}</p>
+                <p>Correct: {{ answer.question.correct_option }}</p>
+            {% endif %}
+            <p>Status: {% if answer.is_correct %}Correct{% else %}Incorrect{% endif %}</p>
+        </li>
+    {% empty %}
+        <li>No answers submitted.</li>
+    {% endfor %}
+</ul>
+<a href="{% url 'exams:student_dashboard' %}" class="button button-secondary">Back to Dashboard</a>
+{% endblock %}

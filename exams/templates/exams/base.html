@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Exam System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        .button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 5px;
+            display: inline-block;
+        }
+        .button-primary {
+            background-color: #28a745;
+            color: white;
+        }
+        .button-secondary {
+            background-color: #007bff;
+            color: white;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .question {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .scientific-input {
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.scientific-input').forEach(input => {
+                input.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+                        e.preventDefault();
+                        wrapSelection(input, '^{', '}');
+                    }
+                    if (e.ctrlKey && e.shiftKey && e.key === 'B') {
+                        e.preventDefault();
+                        wrapSelection(input, '_{', '}');
+                    }
+                    if (e.ctrlKey && e.shiftKey && e.key === 'E') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'ε' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.ctrlKey && e.shiftKey && e.key === 'M') {
+                        e.preventDefault();
+                        if (document.activeElement.classList.contains('scientific-input')) {
+                            openMatrixBuilder(document.activeElement.id);
+                        }
+                    }
+                    if (e.altKey && e.key === 'p') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'π' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 't') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'θ' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'm') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + '𝜇' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'w') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'ω' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'a') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'α' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'l') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'λ' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 's') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'σ' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'h') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'η' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'b') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'β' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'f') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'ΦE' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 2;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'n') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'ΦB' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 2;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'r') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + '√' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'e') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + '⇔' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 3;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'd') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + '∆' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'q') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + '∂' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'u') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + '∑' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                    if (e.altKey && e.key === 'v') {
+                        const activeElement = document.activeElement;
+                        if (activeElement.classList.contains('scientific-input')) {
+                            const start = activeElement.selectionStart;
+                            const end = activeElement.selectionEnd;
+                            const text = activeElement.value;
+                            activeElement.value = text.substring(0, start) + 'τ' + text.substring(end);
+                            activeElement.selectionStart = activeElement.selectionEnd = start + 1;
+                        }
+                        e.preventDefault();
+                    }
+                });
+            });
+
+            // Matrix Builder Function
+            function openMatrixBuilder(targetId) {
+                alert('Matrix builder triggered for field: ' + targetId);
+                const target = document.getElementById(targetId);
+                if (!target) {
+                    alert('Error: Field ' + targetId + ' not found.');
+                    return;
+                }
+                const rows = parseInt(prompt('Number of rows (e.g., 2):'), 10);
+                const cols = parseInt(prompt('Number of columns (e.g., 2):'), 10);
+                if (isNaN(rows) || isNaN(cols) || rows <= 0 || cols <= 0) {
+                    alert('Invalid rows or columns. Use positive numbers.');
+                    return;
+                }
+                let matrixStr = '\\begin{pmatrix}';
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const value = prompt(`Value for row ${r+1}, column ${c+1}:`) || '0';
+                        matrixStr += value.trim() + (c < cols - 1 ? ' & ' : '');
+                    }
+                    matrixStr += (r < rows - 1 ? ' \\\\ ' : '');
+                }
+                matrixStr += '\\end{pmatrix}';
+                const start = target.selectionStart || 0;
+                const end = target.selectionEnd || 0;
+                target.value = target.value.substring(0, start) + matrixStr + target.value.substring(end);
+                target.selectionStart = target.selectionEnd = start + matrixStr.length;
+                target.focus();
+                alert('Matrix inserted: ' + matrixStr);
+                // Trigger MathJax rendering
+                if (typeof MathJax !== 'undefined' && MathJax.typeset) {
+                    MathJax.typeset([target]);
+                }
+            }
+
+            // Toggle form fields based on question type
+            const typeSelect = document.getElementById('question_type');
+            const mcqFields = document.getElementById('mcq_fields');
+            const singleCorrect = document.getElementById('single_correct');
+            const multiCorrect = document.getElementById('multi_correct');
+            const numericalField = document.getElementById('numerical_field');
+
+            if (typeSelect) {
+                function updateFields() {
+                    const type = typeSelect.value;
+                    if (type === 'MCQ_SINGLE') {
+                        mcqFields.style.display = 'block';
+                        singleCorrect.style.display = 'block';
+                        multiCorrect.style.display = 'none';
+                        numericalField.style.display = 'none';
+                    } else if (type === 'MCQ_MULTI') {
+                        mcqFields.style.display = 'block';
+                        singleCorrect.style.display = 'none';
+                        multiCorrect.style.display = 'block';
+                        numericalField.style.display = 'none';
+                    } else if (type === 'NUMERICAL') {
+                        mcqFields.style.display = 'none';
+                        singleCorrect.style.display = 'none';
+                        multiCorrect.style.display = 'none';
+                        numericalField.style.display = 'block';
+                    }
+                }
+                typeSelect.addEventListener('change', updateFields);
+                updateFields();
+            }
+        });
+
+        function wrapSelection(element, before, after) {
+            const start = element.selectionStart;
+            const end = element.selectionEnd;
+            const selectedText = element.value.substring(start, end);
+            element.value = element.value.substring(0, start) + before + selectedText + after + element.value.substring(end);
+            element.focus();
+        }
+
+        function startTimer(duration, display) {
+            let timer = duration, minutes, seconds;
+            let interval = setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                display.textContent = minutes + ":" + seconds;
+                if (--timer < 0) {
+                    clearInterval(interval);
+                    document.forms[0].submit();
+                }
+            }, 1000);
+        }
+    </script>
+</head>
+<body>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% block content %}
+    {% endblock %}
+</body>
+</html>
