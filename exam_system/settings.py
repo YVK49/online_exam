@@ -40,8 +40,12 @@ SECRET_KEY = 'django-insecure-#-hjd($h)@q9-3k7l@f7k^o(fy2w=7t$_0evluw@7u=&c+1^nw
 import os
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
-
-ALLOWED_HOSTS = ["online-exam.onrender.com", "127.0.0.1", "localhost"]
+ALLOWED_HOSTS = [
+    "online-exam.onrender.com",
+    "vk-develops.onrender.com",
+    "127.0.0.1",
+    "localhost"
+]
 
 
 # Application definition
