@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 
 # Email settings (Gmail SMTP)
@@ -37,9 +38,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-#-hjd($h)@q9-3k7l@f7k^o(fy2w=7t$_0evluw@7u=&c+1^nw'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+<<<<<<< HEAD
 DEBUG = False
 
 ALLOWED_HOSTS = ["online-exam.onrender.com"]
+=======
+DEBUG = os.environ.get("DEBUG", "False") == "True"
+
+ALLOWED_HOSTS = ['online-exam.onrender.com']
+ALLOWED_HOSTS = ['online-exam.onrender.com', '127.0.0.1', 'localhost']
+
+>>>>>>> dccd2b1 (Update settings.py and cleaned requirements.txt for Render deployment)
 
 
 # Application definition
