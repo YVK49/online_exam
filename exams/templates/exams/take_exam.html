@@ -6,9 +6,9 @@
     {% csrf_token %}
     {% for question in questions %}
         <div class="question">
-            <h3>{{ question.subject }} ({{ question.question_type }}): {{ question.text|safe }}</h3>
+            <h3>{{ question.text|safe }}</h3>
             {% if question.image %}
-                <img src="{{ question.image.url }}" alt="Question Image" style="max-width: 200px;">
+                <img src="{{ question.image.url }}" alt="Question Image" style="max-width: 200px; display:block; margin:10px 0;">
             {% endif %}
             {% if question.question_type == 'MCQ_SINGLE' %}
                 <div>

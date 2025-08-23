@@ -8,6 +8,18 @@ from .models import ExamCategory, Exam, Question, StudentAnswer, ExamResult
 from django.contrib import messages
 import json
 from datetime import timedelta
+import openpyxl
+from django.core.mail import EmailMessage
+from django.conf import settings
+
+def get_marks_for_question(question):
+    default_scheme = {
+        "MCQ_SINGLE": {"correct": 1, "wrong": -0.25},
+        "MCQ_MULTI": {"correct": 2, "wrong": -0.5},
+        "NUMERICAL": {"correct": 2, "wrong": 0}
+    }
+    scheme = question.exam.category.marking_scheme or default_scheme
+    return scheme.get(question.question_type, default_scheme[question.question_type])
 
 def is_admin(user):
     return user.is_staff
@@ -184,28 +196,23 @@ def take_exam(request, exam_id):
     })
 
 
-@login_required
+import openpyxl
+from django.core.mail import EmailMessage
+
 @login_required
 def submit_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     answers = StudentAnswer.objects.filter(exam=exam, student=request.user)
 
-    # Marking schemes
-    marking_scheme = {
-        'JEE MAINS': {'MCQ_SINGLE': (4, -1, 0), 'NUMERICAL': (4, 0, 0)},
-        'JEE ADVANCED': {'MCQ_SINGLE': (3, -1, 0), 'MCQ_MULTI': (4, -2, 1), 'NUMERICAL': (4, 0, 0)},
-        'EAMCET MPC': {'MCQ_SINGLE': (1, 0, 0)},
-        'EAMCET BiPC': {'MCQ_SINGLE': (1, 0, 0)},
-        'NEET': {'MCQ_SINGLE': (4, -1, 0)},
+    # ✅ Load marking scheme from DB or use defaults
+    type_scheme = exam.category.marking_scheme or {
+        'MCQ_SINGLE': (1, 0, 0),
+        'NUMERICAL': (1, 0, 0),
     }
-
-    category_name = exam.category.name
-    type_scheme = marking_scheme.get(category_name, {'MCQ_SINGLE': (1, 0, 0)})
 
     marks_obtained = 0
     total_marks = 0
 
-    # Evaluate answers
     for answer in answers:
         q = answer.question
         correct_score, incorrect_score, partial_score = type_scheme.get(q.question_type, (1, 0, 0))
@@ -225,7 +232,6 @@ def submit_exam(request, exam_id):
             else:
                 answer.is_correct = False
                 marks_obtained += incorrect_score
-
         elif answer.selected_option == q.correct_option:
             answer.is_correct = True
             marks_obtained += correct_score
@@ -235,7 +241,6 @@ def submit_exam(request, exam_id):
 
         answer.save()
 
-    # Save result
     ExamResult.objects.create(
         student=request.user,
         exam=exam,
@@ -243,8 +248,44 @@ def submit_exam(request, exam_id):
         total_marks=total_marks
     )
 
-    # Remove exam session start time
     request.session.pop(f'exam_{exam_id}_start', None)
+
+    # ✅ Excel report for management
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Exam Results"
+    ws.append(["Student", "Exam", "Category", "Marks", "Total", "Date"])
+
+    results = ExamResult.objects.filter(exam=exam)
+    for r in results:
+        ws.append([
+            r.student.username,
+            r.exam.title,
+            r.exam.category.name,
+            r.marks_obtained,
+            r.total_marks,
+            r.completed_at.strftime("%Y-%m-%d %H:%M"),
+        ])
+
+    file_stream = io.BytesIO()
+    wb.save(file_stream)
+    file_stream.seek(0)
+
+    email = EmailMessage(
+        subject=f"Exam Results Report - {exam.category.name}",
+        body="Attached is the latest results report.",
+        from_email="noreply@exam.com",
+        to=["management@example.com"],
+    )
+    email.attach(f"{exam.category.name}_results.xlsx", file_stream.getvalue(), "application/vnd.ms-excel")
+    email.send(fail_silently=True)
+
+    return render(request, 'exams/exam_result.html', {
+        'exam': exam,
+        'answers': answers,
+        'marks_obtained': marks_obtained,
+        'total_marks': total_marks
+    })
 
     # -----------------------------
     # Email result to college
