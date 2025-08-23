@@ -2,8 +2,13 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.http import HttpResponse
 import io
-from reportlab.pdfgen import canvas
 from .models import ExamCategory, Question, Exam, StudentAnswer, ExamResult
+from reportlab.pdfgen import canvas
+
+c = canvas.Canvas("hello.pdf")
+c.drawString(100, 750, "Hello, ReportLab!")
+c.save()
+
 
 
 @admin.register(ExamCategory)
