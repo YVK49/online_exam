@@ -11,14 +11,11 @@ from django.conf import settings
 from django.contrib import messages
 
 from .models import ExamCategory, Exam, Question, StudentAnswer, ExamResult
-
 import openpyxl
-
 
 # ----------------- Utility Functions -----------------
 def is_admin(user):
     return user.is_staff
-
 
 # ----------------- Login -----------------
 def login_view(request):
@@ -34,7 +31,6 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'exams/login.html', {'form': form})
 
-
 # ----------------- Dashboards -----------------
 @login_required
 def student_dashboard(request):
@@ -42,13 +38,11 @@ def student_dashboard(request):
     results = ExamResult.objects.filter(student=request.user)
     return render(request, 'exams/student_dashboard.html', {'exams': exams, 'results': results})
 
-
 @login_required
 @user_passes_test(is_admin)
 def admin_dashboard(request):
     categories = ExamCategory.objects.filter(parent__isnull=True)
     return render(request, 'exams/admin_dashboard.html', {'categories': categories})
-
 
 # ----------------- Category Detail / Add Question -----------------
 @login_required
@@ -84,7 +78,7 @@ def category_detail(request, category_id):
             messages.error(request, f'Maximum questions for {subject} reached.')
             return render(request, 'exams/category_detail.html', locals())
 
-        # Handle question options
+        # Handle options
         option1 = option2 = option3 = option4 = ''
         if question_type in ['MCQ_SINGLE', 'MCQ_MULTI']:
             option1 = request.POST.get('option1')
@@ -130,7 +124,6 @@ def category_detail(request, category_id):
 
     return render(request, 'exams/category_detail.html', locals())
 
-
 # ----------------- Take Exam -----------------
 @login_required
 def take_exam(request, exam_id):
@@ -172,14 +165,13 @@ def take_exam(request, exam_id):
         'time_left': time_left
     })
 
-
 # ----------------- Submit Exam -----------------
 @login_required
 def submit_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     answers = StudentAnswer.objects.filter(exam=exam, student=request.user)
 
-    # Default marking scheme
+    # Default marking schemes (can adjust per exam)
     default_scheme = {
         "MCQ_SINGLE": {"correct": 1, "wrong": 0, "partial": 0},
         "MCQ_MULTI": {"correct": 2, "wrong": 0, "partial": 1},
@@ -189,7 +181,10 @@ def submit_exam(request, exam_id):
 
     marks_obtained = 0
     total_marks = 0
+    subject_summary = {}
+    wrong_answers = []
 
+    # Compute marks and summary
     for answer in answers:
         q = answer.question
         marks = scheme.get(q.question_type, default_scheme[q.question_type])
@@ -197,6 +192,13 @@ def submit_exam(request, exam_id):
         incorrect_score = marks['wrong']
         partial_score = marks['partial']
         total_marks += correct_score
+
+        subj = q.subject or "General"
+        if subj not in subject_summary:
+            subject_summary[subj] = {'attempted': 0, 'not_attempted': 0, 'right': 0, 'wrong': 0, 'total_marks': 0}
+
+        subject_summary[subj]['attempted'] += 1
+        subject_summary[subj]['total_marks'] += correct_score
 
         if q.question_type == 'MCQ_MULTI':
             selected = set(answer.selected_option.split(',')) if answer.selected_option else set()
@@ -206,22 +208,37 @@ def submit_exam(request, exam_id):
             if num_correct == len(correct) and len(selected) == len(correct):
                 answer.is_correct = True
                 marks_obtained += correct_score
+                subject_summary[subj]['right'] += 1
             elif num_correct > 0:
                 answer.is_correct = False
                 marks_obtained += partial_score * num_correct
+                subject_summary[subj]['wrong'] += 1
+                wrong_answers.append(answer)
             else:
                 answer.is_correct = False
                 marks_obtained += incorrect_score
+                subject_summary[subj]['wrong'] += 1
+                wrong_answers.append(answer)
         else:
             if answer.selected_option == q.correct_option:
                 answer.is_correct = True
                 marks_obtained += correct_score
+                subject_summary[subj]['right'] += 1
             else:
                 answer.is_correct = False
                 marks_obtained += incorrect_score
+                subject_summary[subj]['wrong'] += 1
+                wrong_answers.append(answer)
 
         answer.save()
 
+    # Count not attempted
+    for q in Question.objects.filter(exam_category=exam.category):
+        subj = q.subject or "General"
+        if subj in subject_summary and not answers.filter(question=q).exists():
+            subject_summary[subj]['not_attempted'] += 1
+
+    # Save result
     ExamResult.objects.filter(student=request.user, exam=exam).delete()
     ExamResult.objects.create(
         student=request.user,
@@ -232,53 +249,12 @@ def submit_exam(request, exam_id):
 
     request.session.pop(f'exam_{exam_id}_start', None)
 
-    # Excel report
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Exam Results"
-    ws.append(["Student", "Exam", "Category", "Marks", "Total", "Date"])
-
-    results = ExamResult.objects.filter(exam=exam)
-    for r in results:
-        ws.append([
-            r.student.username,
-            r.exam.title,
-            r.exam.category.name,
-            r.marks_obtained,
-            r.total_marks,
-            r.completed_at.strftime("%Y-%m-%d %H:%M"),
-        ])
-
-    file_stream = io.BytesIO()
-    wb.save(file_stream)
-    file_stream.seek(0)
-
-    email = EmailMessage(
-        subject=f"Exam Results Report - {exam.category.name}",
-        body="Attached is the latest results report.",
-        from_email="noreply@exam.com",
-        to=["management@example.com"],
-    )
-    email.attach(f"{exam.category.name}_results.xlsx", file_stream.getvalue(), "application/vnd.ms-excel")
-    email.send(fail_silently=True)
-
-    # Email submission
-    subject = f"Exam Result: {exam.title} - {request.user.username}"
-    message = (
-        f"Student: {request.user.username}\n"
-        f"Exam: {exam.title}\n"
-        f"Marks Obtained: {marks_obtained}/{total_marks}\n"
-        f"Submitted on: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"
-    )
-    recipient_list = ["tilluvissu@gmail.com"]
-    try:
-        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list)
-    except Exception as e:
-        print("Error sending email:", e)
-
+    # Return result to template
     return render(request, 'exams/exam_result.html', {
         'exam': exam,
-        'answers': answers,
+        'subject_summary': subject_summary,
+        'wrong_answers': wrong_answers,
         'marks_obtained': marks_obtained,
-        'total_marks': total_marks
+        'total_marks': total_marks,
+        'marking_scheme': scheme
     })
