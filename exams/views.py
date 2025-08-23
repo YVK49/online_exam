@@ -198,24 +198,36 @@ def take_exam(request, exam_id):
 
 import openpyxl
 from django.core.mail import EmailMessage
+import io
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from django.core.mail import EmailMessage, send_mail
+from django.conf import settings
+from .models import Exam, StudentAnswer, ExamResult
 
 @login_required
 def submit_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     answers = StudentAnswer.objects.filter(exam=exam, student=request.user)
 
-    # ✅ Load marking scheme from DB or use defaults
-    type_scheme = exam.category.marking_scheme or {
-        'MCQ_SINGLE': (1, 0, 0),
-        'NUMERICAL': (1, 0, 0),
+    # ✅ Load marking scheme
+    default_scheme = {
+        "MCQ_SINGLE": {"correct": 1, "wrong": 0, "partial": 0},
+        "NUMERICAL": {"correct": 1, "wrong": 0, "partial": 0},
+        "MCQ_MULTI": {"correct": 2, "wrong": 0, "partial": 1},
     }
+    scheme = exam.category.marking_scheme or default_scheme
 
     marks_obtained = 0
     total_marks = 0
 
     for answer in answers:
         q = answer.question
-        correct_score, incorrect_score, partial_score = type_scheme.get(q.question_type, (1, 0, 0))
+        marks = scheme.get(q.question_type, default_scheme[q.question_type])
+        correct_score = marks['correct']
+        incorrect_score = marks['wrong']
+        partial_score = marks['partial']
         total_marks += correct_score
 
         if q.question_type == 'MCQ_MULTI':
@@ -232,15 +244,18 @@ def submit_exam(request, exam_id):
             else:
                 answer.is_correct = False
                 marks_obtained += incorrect_score
-        elif answer.selected_option == q.correct_option:
-            answer.is_correct = True
-            marks_obtained += correct_score
         else:
-            answer.is_correct = False
-            marks_obtained += incorrect_score
+            if answer.selected_option == q.correct_option:
+                answer.is_correct = True
+                marks_obtained += correct_score
+            else:
+                answer.is_correct = False
+                marks_obtained += incorrect_score
 
         answer.save()
 
+    # ✅ Delete previous results to avoid duplicates
+    ExamResult.objects.filter(student=request.user, exam=exam).delete()
     ExamResult.objects.create(
         student=request.user,
         exam=exam,
@@ -250,7 +265,7 @@ def submit_exam(request, exam_id):
 
     request.session.pop(f'exam_{exam_id}_start', None)
 
-    # ✅ Excel report for management
+    # ✅ Generate Excel report
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Exam Results"
@@ -280,19 +295,7 @@ def submit_exam(request, exam_id):
     email.attach(f"{exam.category.name}_results.xlsx", file_stream.getvalue(), "application/vnd.ms-excel")
     email.send(fail_silently=True)
 
-    return render(request, 'exams/exam_result.html', {
-        'exam': exam,
-        'answers': answers,
-        'marks_obtained': marks_obtained,
-        'total_marks': total_marks
-    })
-
-    # -----------------------------
-    # Email result to college
-    # -----------------------------
-    from django.core.mail import send_mail
-    from django.conf import settings
-
+    # ✅ Email individual student submission
     subject = f"Exam Result: {exam.title} - {request.user.username}"
     message = (
         f"Student: {request.user.username}\n"
@@ -300,8 +303,6 @@ def submit_exam(request, exam_id):
         f"Marks Obtained: {marks_obtained}/{total_marks}\n\n"
         f"Submitted on: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
-
-    # 🔹 College management fixed email
     recipient_list = ["tilluvissu@gmail.com"]
 
     try:
