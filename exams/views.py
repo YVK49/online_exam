@@ -1,29 +1,26 @@
+import io
+import json
+from datetime import timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
-from django.core.mail import EmailMessage
-from .models import ExamCategory, Exam, Question, StudentAnswer, ExamResult
-from django.contrib import messages
-import json
-from datetime import timedelta
-import openpyxl
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
+from django.contrib import messages
 
-def get_marks_for_question(question):
-    default_scheme = {
-        "MCQ_SINGLE": {"correct": 1, "wrong": -0.25},
-        "MCQ_MULTI": {"correct": 2, "wrong": -0.5},
-        "NUMERICAL": {"correct": 2, "wrong": 0}
-    }
-    scheme = question.exam.category.marking_scheme or default_scheme
-    return scheme.get(question.question_type, default_scheme[question.question_type])
+from .models import ExamCategory, Exam, Question, StudentAnswer, ExamResult
 
+import openpyxl
+
+
+# ----------------- Utility Functions -----------------
 def is_admin(user):
     return user.is_staff
 
+
+# ----------------- Login -----------------
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -37,11 +34,14 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'exams/login.html', {'form': form})
 
+
+# ----------------- Dashboards -----------------
 @login_required
 def student_dashboard(request):
     exams = Exam.objects.all()
     results = ExamResult.objects.filter(student=request.user)
     return render(request, 'exams/student_dashboard.html', {'exams': exams, 'results': results})
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -49,6 +49,8 @@ def admin_dashboard(request):
     categories = ExamCategory.objects.filter(parent__isnull=True)
     return render(request, 'exams/admin_dashboard.html', {'categories': categories})
 
+
+# ----------------- Category Detail / Add Question -----------------
 @login_required
 @user_passes_test(is_admin)
 def category_detail(request, category_id):
@@ -64,101 +66,77 @@ def category_detail(request, category_id):
         question_type = request.POST.get('question_type')
         image = request.FILES.get('image')
 
-        # Validation
         if not all([subject, text, question_type]):
             messages.error(request, 'Subject, text, and question type are required.')
-        elif question_type not in ['MCQ_SINGLE', 'MCQ_MULTI', 'NUMERICAL']:
+            return render(request, 'exams/category_detail.html', locals())
+
+        if question_type not in ['MCQ_SINGLE', 'MCQ_MULTI', 'NUMERICAL']:
             messages.error(request, 'Invalid question type.')
-        else:
-            # Check question count limit
-            current_counts = {q.subject: questions.filter(subject=q.subject, question_type=question_type).count() for q in questions}
-            if isinstance(question_count.get(subject), dict) and question_type in question_count.get(subject, {}):
-                if current_counts.get(subject, 0) >= question_count[subject].get(question_type, 0):
-                    messages.error(request, f'Maximum {question_type} questions ({question_count[subject][question_type]}) for {subject} reached.')
-                    return render(request, 'exams/category_detail.html', {
-                        'category': category, 'subcategories': subcategories, 'exams': exams,
-                        'questions': questions, 'question_count': question_count
-                    })
-            elif question_count.get(subject) and questions.filter(subject=subject).count() >= question_count[subject]:
-                messages.error(request, f'Maximum questions ({question_count[subject]}) for {subject} reached.')
-                return render(request, 'exams/category_detail.html', {
-                    'category': category, 'subcategories': subcategories, 'exams': exams,
-                    'questions': questions, 'question_count': question_count
-                })
+            return render(request, 'exams/category_detail.html', locals())
 
-            # Handle question types
-            if question_type in ['MCQ_SINGLE', 'MCQ_MULTI']:
-                option1 = request.POST.get('option1')
-                option2 = request.POST.get('option2')
-                option3 = request.POST.get('option3')
-                option4 = request.POST.get('option4')
-                if not all([option1, option2, option3, option4]):
-                    messages.error(request, 'All options are required for MCQ questions.')
-                    return render(request, 'exams/category_detail.html', {
-                        'category': category, 'subcategories': subcategories, 'exams': exams,
-                        'questions': questions, 'question_count': question_count
-                    })
-                if question_type == 'MCQ_SINGLE':
-                    correct_option = request.POST.get('correct_option')
-                    if correct_option not in ['option1', 'option2', 'option3', 'option4']:
-                        messages.error(request, 'Invalid correct option selected.')
-                        return render(request, 'exams/category_detail.html', {
-                            'category': category, 'subcategories': subcategories, 'exams': exams,
-                            'questions': questions, 'question_count': question_count
-                        })
-                else:  # MCQ_MULTI
-                    correct_options = request.POST.getlist('correct_options')
-                    if not correct_options:
-                        messages.error(request, 'At least one correct option required for MCQ Multi.')
-                        return render(request, 'exams/category_detail.html', {
-                            'category': category, 'subcategories': subcategories, 'exams': exams,
-                            'questions': questions, 'question_count': question_count
-                        })
-                    correct_option = ','.join(sorted(correct_options))
-            else:  # NUMERICAL
-                option1 = option2 = option3 = option4 = ''
-                correct_option = request.POST.get('correct_value')
-                if not correct_option:
-                    messages.error(request, 'Correct value required for Numerical.')
-                    return render(request, 'exams/category_detail.html', {
-                        'category': category, 'subcategories': subcategories, 'exams': exams,
-                        'questions': questions, 'question_count': question_count
-                    })
+        # Check question count limit
+        current_counts = {q.subject: questions.filter(subject=q.subject, question_type=question_type).count() for q in questions}
+        if isinstance(question_count.get(subject), dict) and question_type in question_count.get(subject, {}):
+            if current_counts.get(subject, 0) >= question_count[subject].get(question_type, 0):
+                messages.error(request, f'Maximum {question_type} questions for {subject} reached.')
+                return render(request, 'exams/category_detail.html', locals())
+        elif question_count.get(subject) and questions.filter(subject=subject).count() >= question_count[subject]:
+            messages.error(request, f'Maximum questions for {subject} reached.')
+            return render(request, 'exams/category_detail.html', locals())
 
-            question = Question(
-                exam_category=category,
-                subject=subject,
-                question_type=question_type,
-                text=text,
-                option1=option1,
-                option2=option2,
-                option3=option3,
-                option4=option4,
-                correct_option=correct_option,
-                image=image
-            )
-            question.save()
-            messages.success(request, 'Question added successfully!')
-            return redirect('exams:category_detail', category_id=category.id)
+        # Handle question options
+        option1 = option2 = option3 = option4 = ''
+        if question_type in ['MCQ_SINGLE', 'MCQ_MULTI']:
+            option1 = request.POST.get('option1')
+            option2 = request.POST.get('option2')
+            option3 = request.POST.get('option3')
+            option4 = request.POST.get('option4')
+            if not all([option1, option2, option3, option4]):
+                messages.error(request, 'All options are required for MCQs.')
+                return render(request, 'exams/category_detail.html', locals())
 
-    return render(request, 'exams/category_detail.html', {
-        'category': category, 'subcategories': subcategories, 'exams': exams,
-        'questions': questions, 'question_count': question_count
-    })
+            if question_type == 'MCQ_SINGLE':
+                correct_option = request.POST.get('correct_option')
+                if correct_option not in ['option1', 'option2', 'option3', 'option4']:
+                    messages.error(request, 'Invalid correct option selected.')
+                    return render(request, 'exams/category_detail.html', locals())
+            else:  # MCQ_MULTI
+                correct_options = request.POST.getlist('correct_options')
+                if not correct_options:
+                    messages.error(request, 'At least one correct option required for MCQ Multi.')
+                    return render(request, 'exams/category_detail.html', locals())
+                correct_option = ','.join(sorted(correct_options))
+        else:  # NUMERICAL
+            correct_option = request.POST.get('correct_value')
+            if not correct_option:
+                messages.error(request, 'Correct value required for Numerical.')
+                return render(request, 'exams/category_detail.html', locals())
 
+        question = Question(
+            exam_category=category,
+            subject=subject,
+            question_type=question_type,
+            text=text,
+            option1=option1,
+            option2=option2,
+            option3=option3,
+            option4=option4,
+            correct_option=correct_option,
+            image=image
+        )
+        question.save()
+        messages.success(request, 'Question added successfully!')
+        return redirect('exams:category_detail', category_id=category.id)
+
+    return render(request, 'exams/category_detail.html', locals())
+
+
+# ----------------- Take Exam -----------------
 @login_required
 def take_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     questions = Question.objects.filter(exam_category=exam.category)
-
-    # ✅ Load constraints (time, question counts, etc.) from category
-    try:
-        constraints = json.loads(exam.category.question_count)
-    except Exception:
-        constraints = {}
-
-    # ✅ Default duration fallback if not in Excel
-    duration_minutes = constraints.get("duration", 180)
+    duration_minutes = 180
     time_left = duration_minutes * 60
 
     if request.session.get(f'exam_{exam_id}_start'):
@@ -191,31 +169,21 @@ def take_exam(request, exam_id):
     return render(request, 'exams/take_exam.html', {
         'exam': exam,
         'questions': questions,
-        'time_left': time_left,
-        'constraints': constraints  # ✅ Pass constraints to template
+        'time_left': time_left
     })
 
 
-import openpyxl
-from django.core.mail import EmailMessage
-import io
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-from django.core.mail import EmailMessage, send_mail
-from django.conf import settings
-from .models import Exam, StudentAnswer, ExamResult
-
+# ----------------- Submit Exam -----------------
 @login_required
 def submit_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     answers = StudentAnswer.objects.filter(exam=exam, student=request.user)
 
-    # ✅ Load marking scheme
+    # Default marking scheme
     default_scheme = {
         "MCQ_SINGLE": {"correct": 1, "wrong": 0, "partial": 0},
-        "NUMERICAL": {"correct": 1, "wrong": 0, "partial": 0},
         "MCQ_MULTI": {"correct": 2, "wrong": 0, "partial": 1},
+        "NUMERICAL": {"correct": 1, "wrong": 0, "partial": 0},
     }
     scheme = exam.category.marking_scheme or default_scheme
 
@@ -254,7 +222,6 @@ def submit_exam(request, exam_id):
 
         answer.save()
 
-    # ✅ Delete previous results to avoid duplicates
     ExamResult.objects.filter(student=request.user, exam=exam).delete()
     ExamResult.objects.create(
         student=request.user,
@@ -265,7 +232,7 @@ def submit_exam(request, exam_id):
 
     request.session.pop(f'exam_{exam_id}_start', None)
 
-    # ✅ Generate Excel report
+    # Excel report
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Exam Results"
@@ -295,16 +262,15 @@ def submit_exam(request, exam_id):
     email.attach(f"{exam.category.name}_results.xlsx", file_stream.getvalue(), "application/vnd.ms-excel")
     email.send(fail_silently=True)
 
-    # ✅ Email individual student submission
+    # Email submission
     subject = f"Exam Result: {exam.title} - {request.user.username}"
     message = (
         f"Student: {request.user.username}\n"
         f"Exam: {exam.title}\n"
-        f"Marks Obtained: {marks_obtained}/{total_marks}\n\n"
+        f"Marks Obtained: {marks_obtained}/{total_marks}\n"
         f"Submitted on: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
     recipient_list = ["tilluvissu@gmail.com"]
-
     try:
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list)
     except Exception as e:
