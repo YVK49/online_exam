@@ -9,13 +9,16 @@ from django.utils import timezone
 from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
 from django.contrib import messages
-
+from .email_utils import send_exam_report_email
 from .models import ExamCategory, Exam, Question, StudentAnswer, ExamResult
+
 import openpyxl
+
 
 # ----------------- Utility Functions -----------------
 def is_admin(user):
     return user.is_staff
+
 
 # ----------------- Login -----------------
 def login_view(request):
@@ -31,6 +34,7 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'exams/login.html', {'form': form})
 
+
 # ----------------- Dashboards -----------------
 @login_required
 def student_dashboard(request):
@@ -38,11 +42,13 @@ def student_dashboard(request):
     results = ExamResult.objects.filter(student=request.user)
     return render(request, 'exams/student_dashboard.html', {'exams': exams, 'results': results})
 
+
 @login_required
 @user_passes_test(is_admin)
 def admin_dashboard(request):
     categories = ExamCategory.objects.filter(parent__isnull=True)
     return render(request, 'exams/admin_dashboard.html', {'categories': categories})
+
 
 # ----------------- Category Detail / Add Question -----------------
 @login_required
@@ -78,7 +84,7 @@ def category_detail(request, category_id):
             messages.error(request, f'Maximum questions for {subject} reached.')
             return render(request, 'exams/category_detail.html', locals())
 
-        # Handle options
+        # Handle question options
         option1 = option2 = option3 = option4 = ''
         if question_type in ['MCQ_SINGLE', 'MCQ_MULTI']:
             option1 = request.POST.get('option1')
@@ -124,6 +130,7 @@ def category_detail(request, category_id):
 
     return render(request, 'exams/category_detail.html', locals())
 
+
 # ----------------- Take Exam -----------------
 @login_required
 def take_exam(request, exam_id):
@@ -165,13 +172,32 @@ def take_exam(request, exam_id):
         'time_left': time_left
     })
 
+
+# ----------------- Submit Exam -----------------
 # ----------------- Submit Exam -----------------
 @login_required
 def submit_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
-    answers = StudentAnswer.objects.filter(exam=exam, student=request.user)
+    all_questions = Question.objects.filter(exam_category=exam.category)
 
-    # Default marking schemes (can adjust per exam)
+    # Save all submitted answers first
+    if request.method == 'POST':
+        for question in all_questions:
+            selected = ''
+            if question.question_type == 'MCQ_MULTI':
+                selected_options = request.POST.getlist(f'question_{question.id}')
+                selected = ','.join(sorted(selected_options)) if selected_options else ''
+            else:
+                selected = request.POST.get(f'question_{question.id}', '')
+            StudentAnswer.objects.update_or_create(
+                student=request.user,
+                exam=exam,
+                question=question,
+                defaults={'selected_option': selected, 'is_correct': False}
+            )
+
+    # Evaluate answers
+    answers = StudentAnswer.objects.filter(exam=exam, student=request.user)
     default_scheme = {
         "MCQ_SINGLE": {"correct": 1, "wrong": 0, "partial": 0},
         "MCQ_MULTI": {"correct": 2, "wrong": 0, "partial": 1},
@@ -179,82 +205,105 @@ def submit_exam(request, exam_id):
     }
     scheme = exam.category.marking_scheme or default_scheme
 
-    marks_obtained = 0
+    total_marks_obtained = 0
     total_marks = 0
-    subject_summary = {}
-    wrong_answers = []
+    subject_stats = {}
+    wrong_questions = []
 
-    # Compute marks and summary
+    # Initialize per-subject stats
+    for q in all_questions:
+        subj = q.subject or "General"
+        if subj not in subject_stats:
+            subject_stats[subj] = {
+                "attempted": 0,
+                "not_attempted": 0,
+                "correct": 0,
+                "wrong": 0,
+                "marks_obtained": 0,
+                "total_marks": 0
+            }
+        subject_stats[subj]["total_marks"] += scheme.get(q.question_type, default_scheme[q.question_type])['correct']
+
+    # Evaluate each answer
     for answer in answers:
         q = answer.question
+        subj = q.subject or "General"
         marks = scheme.get(q.question_type, default_scheme[q.question_type])
         correct_score = marks['correct']
         incorrect_score = marks['wrong']
         partial_score = marks['partial']
-        total_marks += correct_score
 
-        subj = q.subject or "General"
-        if subj not in subject_summary:
-            subject_summary[subj] = {'attempted': 0, 'not_attempted': 0, 'right': 0, 'wrong': 0, 'total_marks': 0}
+        obtained = 0
+        is_correct = False
 
-        subject_summary[subj]['attempted'] += 1
-        subject_summary[subj]['total_marks'] += correct_score
-
-        if q.question_type == 'MCQ_MULTI':
-            selected = set(answer.selected_option.split(',')) if answer.selected_option else set()
-            correct = set(q.correct_option.split(','))
-            num_correct = len(selected & correct)
-
-            if num_correct == len(correct) and len(selected) == len(correct):
-                answer.is_correct = True
-                marks_obtained += correct_score
-                subject_summary[subj]['right'] += 1
-            elif num_correct > 0:
-                answer.is_correct = False
-                marks_obtained += partial_score * num_correct
-                subject_summary[subj]['wrong'] += 1
-                wrong_answers.append(answer)
-            else:
-                answer.is_correct = False
-                marks_obtained += incorrect_score
-                subject_summary[subj]['wrong'] += 1
-                wrong_answers.append(answer)
+        if not answer.selected_option:
+            subject_stats[subj]["not_attempted"] += 1
         else:
-            if answer.selected_option == q.correct_option:
-                answer.is_correct = True
-                marks_obtained += correct_score
-                subject_summary[subj]['right'] += 1
+            subject_stats[subj]["attempted"] += 1
+            if q.question_type == 'MCQ_MULTI':
+                selected = set(answer.selected_option.split(','))
+                correct = set(q.correct_option.split(','))
+                num_correct = len(selected & correct)
+
+                if num_correct == len(correct) and len(selected) == len(correct):
+                    is_correct = True
+                    obtained = correct_score
+                elif num_correct > 0:
+                    is_correct = False
+                    obtained = partial_score * num_correct
+                else:
+                    is_correct = False
+                    obtained = incorrect_score
             else:
-                answer.is_correct = False
-                marks_obtained += incorrect_score
-                subject_summary[subj]['wrong'] += 1
-                wrong_answers.append(answer)
+                if answer.selected_option == q.correct_option:
+                    is_correct = True
+                    obtained = correct_score
+                else:
+                    is_correct = False
+                    obtained = incorrect_score
 
+            if not is_correct:
+                wrong_questions.append({
+                    "question": q.text,
+                    "student_answer": answer.selected_option,
+                    "correct_answer": q.correct_option
+                })
+
+            if is_correct:
+                subject_stats[subj]["correct"] += 1
+            else:
+                subject_stats[subj]["wrong"] += 1
+
+        answer.is_correct = is_correct
         answer.save()
+        total_marks_obtained += obtained
+        total_marks += correct_score
+        subject_stats[subj]["marks_obtained"] += obtained
 
-    # Count not attempted
-    for q in Question.objects.filter(exam_category=exam.category):
-        subj = q.subject or "General"
-        if subj in subject_summary and not answers.filter(question=q).exists():
-            subject_summary[subj]['not_attempted'] += 1
-
-    # Save result
+    # Save exam result
     ExamResult.objects.filter(student=request.user, exam=exam).delete()
     ExamResult.objects.create(
         student=request.user,
         exam=exam,
-        marks_obtained=marks_obtained,
+        marks_obtained=total_marks_obtained,
         total_marks=total_marks
     )
 
+    # Remove exam start session
     request.session.pop(f'exam_{exam_id}_start', None)
 
-    # Return result to template
+    # ----------------- Send Email -----------------
+    try:
+        from .email_utils import send_exam_report_email  # make sure your function is in email_utils.py
+        send_exam_report_email(subject_stats, wrong_questions, total_marks_obtained, total_marks)
+    except Exception as e:
+        messages.error(request, f"Failed to send email: {e}")
+
+    # Render result page
     return render(request, 'exams/exam_result.html', {
         'exam': exam,
-        'subject_summary': subject_summary,
-        'wrong_answers': wrong_answers,
-        'marks_obtained': marks_obtained,
-        'total_marks': total_marks,
-        'marking_scheme': scheme
+        'subject_stats': subject_stats,
+        'wrong_questions': wrong_questions,
+        'total_marks_obtained': total_marks_obtained,
+        'total_marks': total_marks
     })
