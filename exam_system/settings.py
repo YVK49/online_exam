@@ -4,6 +4,12 @@ Django settings for exam_system project.
 
 from pathlib import Path
 import os
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
+from cloudinary_storage.storage import MediaCloudinaryStorage
+
 
 # ----------------------------------
 # Base directory
