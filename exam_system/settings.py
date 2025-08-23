@@ -4,12 +4,6 @@ Django settings for exam_system project.
 
 from pathlib import Path
 import os
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-from cloudinary_storage.storage import RawMediaCloudinaryStorage
-from cloudinary_storage.storage import MediaCloudinaryStorage
-
 
 # ----------------------------------
 # Base directory
@@ -20,14 +14,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security
 # ----------------------------------
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
-DEBUG = os.environ.get("DEBUG", "False") == "False"
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = [
-    "online-exam.onrender.com",
-    "vk-develops.onrender.com",
-    "127.0.0.1",
-    "localhost"
-]
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 # ----------------------------------
 # Email settings (Gmail SMTP)
@@ -52,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'exams',
     'cloudinary',
-    'cloudinary_storage'
+    'cloudinary_storage',
 ]
 
 # ----------------------------------
@@ -66,9 +55,9 @@ USE_CLOUDINARY = os.getenv('USE_CLOUDINARY', '0') == '1'
 if USE_CLOUDINARY:
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': os.getenv('bansal'),
-        'API_KEY': os.getenv('774778231157683'),
-        'API_SECRET': os.getenv('eu21rWRYstp0B96pUYlKoQXox-0'),
+        'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+        'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+        'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
     }
 
 # ----------------------------------
