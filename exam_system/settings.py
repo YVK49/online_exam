@@ -29,8 +29,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get("vamshikrishna8330@gmail.com")
-EMAIL_HOST_PASSWORD = os.environ.get("dafl utcn wcxq ozkm")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")       # ✅ keep ENV variable
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ----------------------------------
@@ -44,28 +44,32 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "exams",
-    "storages"
+    "storages",  # for Supabase storage
 ]
 
-import os
+# ----------------------------------
+# Media & Static Storage (Supabase + Whitenoise)
+# ----------------------------------
 STORAGES = {
-    "default": {  # for uploaded media files (Supabase)
-        "BACKEND": "storages.backends.s3.S3Storage",
+    "default": {  # Uploaded media (images, PDFs, etc.)
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
         "OPTIONS": {
-            "access_key": os.getenv("SUPABASE_ACCESS_KEY"),
-            "secret_key": os.getenv("SUPABASE_SECRET_KEY"),
-            "bucket_name": os.getenv("SUPABASE_BUCKET", "media"),
-            "region_name": os.getenv("SUPABASE_REGION", "ap-south-1"),
-            "endpoint_url": os.getenv("SUPABASE_URL"),
-
+            "access_key": os.getenv("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFreHhoZGRvZHJjdHNkZXFpcnV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5MjY0NzIsImV4cCI6MjA3MTUwMjQ3Mn0.7WfqCis2NurtX-09tSwCrRujqaLtWZDMCSiudPP0Gic"),
+            "secret_key": os.getenv("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFreHhoZGRvZHJjdHNkZXFpcnV5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTkyNjQ3MiwiZXhwIjoyMDcxNTAyNDcyfQ.B7p_hf-x28nzXLlRkLrGjXLwODyP-AFPWOiP7uSZYls"),
+            "bucket_name": os.getenv("media", "media"),
+            "region_name": os.getenv("ap-south-1", "ap-south-1"),
+            "endpoint_url": os.getenv("https://qkxxhddodrctsdeqiruy.storage.supabase.co/storage/v1/s3"),  # example: https://<project-ref>.supabase.co/storage/v1/s3
             "addressing_style": "path",
         },
     },
-    "staticfiles": {  # for static files (keep local or configure CDN)
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    "staticfiles": {  # Static files via whitenoise
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
+# Media URL (Supabase bucket URL)
+MEDIA_URL = f"{os.getenv('SUPABASE_URL')}/{os.getenv('SUPABASE_BUCKET', 'media')}/"
+MEDIA_ROOT = ""  # ✅ no local media storage
 
 # ----------------------------------
 # Middleware
@@ -105,41 +109,32 @@ TEMPLATES = [
 WSGI_APPLICATION = "exam_system.wsgi.application"
 
 # ----------------------------------
-# Database
+# Database (Supabase Postgres)
 # ----------------------------------
-# -------------------------
-# Supabase (Postgres)
-# -------------------------
-
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / "db.sqlite3",
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
     }
 }
 
-
-
+# ----------------------------------
+# Logging
+# ----------------------------------
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"]},
+    "loggers": {
+        "django": {"handlers": ["console"], "level": "ERROR", "propagate": False}
     },
 }
+
 # ----------------------------------
 # Password validation
 # ----------------------------------

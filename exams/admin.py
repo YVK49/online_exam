@@ -1,7 +1,7 @@
+import csv  # ✅ add this
 from django.contrib import admin
 from django.utils.html import format_html
 from django.http import HttpResponse
-import io
 from .models import ExamCategory, Question, Exam, StudentAnswer, ExamResult
 from reportlab.pdfgen import canvas
 
@@ -18,15 +18,17 @@ class ExamCategoryAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     # Show image preview in list view
-    def preview_image(self, obj):
+    def show_preview(self, obj):
         if obj.image:
-            return format_html("<img src='{}' width='100' style='border-radius:6px;'/>", obj.image.url)
+            return format_html(
+                "<img src='{}' width='100' style='border-radius:6px;'/>",
+                obj.image.url,
+            )
         return "No Image"
-    preview_image.short_description = "Image"
+    show_preview.short_description = "Image"
 
     # Fields to display in list view
     list_display = (
@@ -35,7 +37,7 @@ class QuestionAdmin(admin.ModelAdmin):
         "text",
         "exam_category",
         "correct_option",
-        "preview_image",
+        "show_preview",   # 👈 changed
     )
     list_filter = ("exam_category", "question_type")
     search_fields = ("text", "subject")
