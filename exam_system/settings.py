@@ -4,37 +4,41 @@ Django settings for exam_system project.
 
 from pathlib import Path
 import os
+import dj_database_url
 
-# ----------------------------------
-# Base directory
-# ----------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ----------------------------------
 # Security
 # ----------------------------------
-SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+# ⚠️ Replace with your own Django secret key
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    "(=-+^^ag9kc3=2jq$42mp1bii$%p#-i!837g@mlm3fzsac4khq"
+)
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    os.environ.get("RENDER_EXTERNAL_HOSTNAME", "vk-develops.onrender.com"),
+    os.getenv("RENDER_EXTERNAL_HOSTNAME", "vk-develops.onrender.com"),
 ]
 
 # ----------------------------------
-# Email settings (Gmail SMTP)
+# Email (Gmail SMTP)
 # ----------------------------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")       # ✅ keep ENV variable
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+# ⚠️ Enter your Gmail address here
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "your-email@gmail.com")
+# ⚠️ Enter your Gmail app password here
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "your-app-password")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ----------------------------------
-# Applications
+# Installed Apps
 # ----------------------------------
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -44,32 +48,49 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "exams",
-    "storages",  # for Supabase storage
+    "storages",  # S3-compatible backend for Supabase
 ]
 
 # ----------------------------------
-# Media & Static Storage (Supabase + Whitenoise)
+# Database (Supabase Postgres)
 # ----------------------------------
+# ⚠️ Replace username, password, host, db-name if needed
+DATABASES = {
+    "default": dj_database_url.config(
+        default="postgresql://postgres:V@mshi20050812@db.qkxxhddodrctsdeqiruy.supabase.co:5432/postgres",
+        conn_max_age=600,
+    )
+}
+
+# ----------------------------------
+# Supabase Storage
+# ----------------------------------
+SUPABASE_PROJECT_REF = "qkxxhddodrctsdeqiruy"
+SUPABASE_BUCKET = "meida"
+SUPABASE_URL = f"https://{SUPABASE_PROJECT_REF}.supabase.co"
+
 STORAGES = {
-    "default": {  # Uploaded media (images, PDFs, etc.)
+    "default": {  # Media files
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
         "OPTIONS": {
-            "access_key": os.getenv("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFreHhoZGRvZHJjdHNkZXFpcnV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5MjY0NzIsImV4cCI6MjA3MTUwMjQ3Mn0.7WfqCis2NurtX-09tSwCrRujqaLtWZDMCSiudPP0Gic"),
-            "secret_key": os.getenv("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFreHhoZGRvZHJjdHNkZXFpcnV5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTkyNjQ3MiwiZXhwIjoyMDcxNTAyNDcyfQ.B7p_hf-x28nzXLlRkLrGjXLwODyP-AFPWOiP7uSZYls"),
-            "bucket_name": os.getenv("media", "media"),
-            "region_name": os.getenv("ap-south-1", "ap-south-1"),
-            "endpoint_url": os.getenv("https://qkxxhddodrctsdeqiruy.storage.supabase.co/storage/v1/s3"),  # example: https://<project-ref>.supabase.co/storage/v1/s3
+            # ⚠️ Put your Supabase access key here
+            "access_key": os.getenv("SUPABASE_ACCESS_KEY", "your-access-key"),
+            # ⚠️ Put your Supabase secret key here
+            "secret_key": os.getenv("SUPABASE_SECRET_KEY", "your-secret-key"),
+            "bucket_name": SUPABASE_BUCKET,
+            "region_name": "ap-south-1",  # fixed region
+            "endpoint_url": "https://qkxxhddodrctsdeqiruy.storage.supabase.co/storage/v1/s3",
             "addressing_style": "path",
         },
     },
-    "staticfiles": {  # Static files via whitenoise
+    "staticfiles": {  # Static files (via whitenoise)
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
-# Media URL (Supabase bucket URL)
-MEDIA_URL = f"{os.getenv('SUPABASE_URL')}/{os.getenv('SUPABASE_BUCKET', 'media')}/"
-MEDIA_ROOT = ""  # ✅ no local media storage
+# ⚠️ Media files will be served from Supabase public bucket
+MEDIA_URL = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/"
+MEDIA_ROOT = ""
 
 # ----------------------------------
 # Middleware
@@ -109,20 +130,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "exam_system.wsgi.application"
 
 # ----------------------------------
-# Database (Supabase Postgres)
-# ----------------------------------
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT", "5432"),
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-    }
-}
-
-# ----------------------------------
 # Logging
 # ----------------------------------
 LOGGING = {
@@ -154,13 +161,13 @@ USE_I18N = True
 USE_TZ = True
 
 # ----------------------------------
-# Static files (CSS, JavaScript)
+# Static files
 # ----------------------------------
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ----------------------------------
-# Default primary key field type
+# Default PK type
 # ----------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
