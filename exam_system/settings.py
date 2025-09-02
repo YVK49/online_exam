@@ -56,15 +56,11 @@ INSTALLED_APPS = [
 # ----------------------------------
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.getenv(
-            "DATABASE_URL",
-            "postgresql://postgres:V@mshi20050812@db.qkxxhddodrctsdeqiruy.supabase.co:5432/postgres?sslmode=require"
-        ),
+        env="DATABASE_URL",   # ✅ Explicitly read DATABASE_URL
         conn_max_age=600,
-        ssl_require=True,   # ✅ Enforce SSL
+        ssl_require=True,     # ✅ Always require SSL
     )
 }
-
 
 # ----------------------------------
 # Supabase Storage
