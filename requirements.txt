@@ -95,7 +95,6 @@ MarkupSafe==3.0.2
 matplotlib-inline==0.1.7
 mistune==3.1.2
 monotonic==1.6
-MouseInfo==0.1.3
 nbclient==0.10.2
 nbconvert==7.16.6
 nbformat==5.10.4
@@ -141,8 +140,8 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-json-logger==3.3.0
 pytweening==1.2.0
-pywin32==309
-pywinpty==2.0.15
+# ❌ REMOVED pywin32==309 (Windows only)
+# ❌ REMOVED pywinpty==2.0.15 (Windows only)
 PyYAML==6.0.2
 pyzmq==26.3.0
 referencing==0.36.2
