@@ -52,11 +52,12 @@ STORAGES = {
     "default": {  # for uploaded media files (Supabase)
         "BACKEND": "storages.backends.s3.S3Storage",
         "OPTIONS": {
-            "access_key": os.getenv("30c2146dc6194288d08af14eb00cda9d"),
-            "secret_key": os.getenv("c0eb3a5774377e486529ef6426a99df5678e78a52388d25fdb87eceeb3642680"),
-            "bucket_name": os.getenv("media", "media"),
-            "region_name": os.getenv("ap-south-1"),
-            "endpoint_url": os.getenv("https://qkxxhddodrctsdeqiruy.storage.supabase.co/storage/v1/s3"),
+            "access_key": os.getenv("SUPABASE_ACCESS_KEY"),
+            "secret_key": os.getenv("SUPABASE_SECRET_KEY"),
+            "bucket_name": os.getenv("SUPABASE_BUCKET", "media"),
+            "region_name": os.getenv("SUPABASE_REGION", "ap-south-1"),
+            "endpoint_url": os.getenv("SUPABASE_URL"),
+
             "addressing_style": "path",
         },
     },

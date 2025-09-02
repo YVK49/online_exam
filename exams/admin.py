@@ -18,17 +18,38 @@ class ExamCategoryAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
+
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ('question_type', 'text', 'exam_category', 'correct_option', 'preview_image')
-    list_filter = ('exam_category', 'question_type')
-    search_fields = ('text',)
-
+    # Show image preview in list view
     def preview_image(self, obj):
         if obj.image:
-            return format_html("<img src='{}' width='100' />", obj.image.url)
+            return format_html("<img src='{}' width='100' style='border-radius:6px;'/>", obj.image.url)
         return "No Image"
     preview_image.short_description = "Image"
+
+    # Fields to display in list view
+    list_display = (
+        "subject",
+        "question_type",
+        "text",
+        "exam_category",
+        "correct_option",
+        "preview_image",
+    )
+    list_filter = ("exam_category", "question_type")
+    search_fields = ("text", "subject")
+
+    # Fields in admin form
+    fieldsets = (
+        ("Question Info", {
+            "fields": ("subject", "exam_category", "question_type", "text", "image")
+        }),
+        ("Options", {
+            "fields": ("option1", "option2", "option3", "option4", "correct_option")
+        }),
+    )
+
 
 
 @admin.register(Exam)
