@@ -51,16 +51,23 @@ INSTALLED_APPS = [
     "storages",  # S3-compatible backend for Supabase
 ]
 
-# ----------------------------------
-# Database (Supabase Postgres with SSL enforced)
-# ----------------------------------
-DATABASES = {
-    "default": dj_database_url.config(
-        env="DATABASE_URL",   # ✅ Explicitly read DATABASE_URL
-        conn_max_age=600,
-        ssl_require=True,     # ✅ Always require SSL
-    )
-}
+
+import dj_database_url
+import os
+
+if os.getenv("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.parse(os.environ["DATABASE_URL"], conn_max_age=600, ssl_require=True)
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+
 
 # ----------------------------------
 # Supabase Storage
