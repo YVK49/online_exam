@@ -44,26 +44,27 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "exams",
-    "cloudinary",
-    "cloudinary_storage",
+    "storages"
 ]
 
-# ----------------------------------
-# Media & Cloudinary
-# ----------------------------------
-USE_CLOUDINARY = os.getenv("USE_CLOUDINARY", "0") == "1"
+import os
+STORAGES = {
+    "default": {  # for uploaded media files (Supabase)
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": os.getenv("30c2146dc6194288d08af14eb00cda9d"),
+            "secret_key": os.getenv("c0eb3a5774377e486529ef6426a99df5678e78a52388d25fdb87eceeb3642680"),
+            "bucket_name": os.getenv("media", "media"),
+            "region_name": os.getenv("ap-south-1"),
+            "endpoint_url": os.getenv("https://qkxxhddodrctsdeqiruy.storage.supabase.co/storage/v1/s3"),
+            "addressing_style": "path",
+        },
+    },
+    "staticfiles": {  # for static files (keep local or configure CDN)
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
-if USE_CLOUDINARY:
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-    CLOUDINARY_STORAGE = {
-        "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
-        "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
-        "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
-    }
-    MEDIA_URL = "https://res.cloudinary.com/%s/" % os.getenv("CLOUDINARY_CLOUD_NAME")
-else:
-    MEDIA_URL = "/media/"
-    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # ----------------------------------
 # Middleware
