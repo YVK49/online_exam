@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ⚠️ Replace with your own Django secret key
 SECRET_KEY = os.getenv(
     "SECRET_KEY",
-    "(=-+^^ag9kc3=2jq$42mp1bii$%p#-i!837g@mlm3fzsac4khq"
+    "3ag%uo*p5t4!_qydefc71ksd7w*9n-b9rdxcz&_no_e0d6(^33"
 )
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
@@ -78,10 +78,10 @@ STORAGES = {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
         "OPTIONS": {
             # ⚠️ Put your Supabase access key here
-            "access_key": os.getenv("SUPABASE_ACCESS_KEY", "your-access-key"),
+            "access_key": os.getenv("SUPABASE_ACCESS_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFreHhoZGRvZHJjdHNkZXFpcnV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5MjY0NzIsImV4cCI6MjA3MTUwMjQ3Mn0.7WfqCis2NurtX-09tSwCrRujqaLtWZDMCSiudPP0Gic"),
             # ⚠️ Put your Supabase secret key here
-            "secret_key": os.getenv("SUPABASE_SECRET_KEY", "your-secret-key"),
-            "bucket_name": SUPABASE_BUCKET,
+            "secret_key": os.getenv("SUPABASE_SECRET_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFreHhoZGRvZHJjdHNkZXFpcnV5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTkyNjQ3MiwiZXhwIjoyMDcxNTAyNDcyfQ.B7p_hf-x28nzXLlRkLrGjXLwODyP-AFPWOiP7uSZYls"),
+            "bucket_name": "media",
             "region_name": "ap-south-1",  # fixed region
             "endpoint_url": "https://qkxxhddodrctsdeqiruy.storage.supabase.co/storage/v1/s3",
             "addressing_style": "path",
