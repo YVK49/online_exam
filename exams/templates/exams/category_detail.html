@@ -1,0 +1,118 @@
+{% extends 'exams/base.html' %}
+{% block content %}
+<h2>{{ category.name }}</h2>
+{% if subcategories %}
+    <h3>Subcategories</h3>
+    <ul>
+        {% for subcat in subcategories %}
+            <li><a href="{% url 'exams:category_detail' subcat.id %}" class="button button-secondary">{{ subcat.name }}</a></li>
+        {% endfor %}
+    </ul>
+{% endif %}
+<h3>Add Question</h3>
+<form method="post" enctype="multipart/form-data" action="{% url 'exams:category_detail' category.id %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="subject">Subject</label>
+        <select name="subject" id="subject" class="form-control" required>
+            {% for subject, count in question_count.items %}
+                <option value="{{ subject }}">{{ subject }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="question_type">Question Type</label>
+        <select name="question_type" id="question_type" class="form-control" required>
+            <option value="MCQ_SINGLE">MCQ Single Correct</option>
+            <option value="MCQ_MULTI">MCQ Multiple Correct</option>
+            <option value="NUMERICAL">Numerical Value</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="text">Question Text (Ctrl+Shift+S for superscript, Ctrl+Shift+B for subscript, Ctrl+Shift+E for ε, Alt+p for π, Ctrl+Shift+M for matrix)</label>
+        <textarea name="text" id="text" class="form-control scientific-input" required></textarea>
+    </div>
+    <div class="form-group">
+        <label for="image">Image (optional)</label>
+        <input type="file" name="image" id="image" accept="image/*">
+    </div>
+    <div id="mcq_fields">
+        <div class="form-group">
+            <label for="option1">Option 1 (Ctrl+Shift+M for matrix)</label>
+            <input type="text" name="option1" id="option1" class="form-control scientific-input">
+        </div>
+        <div class="form-group">
+            <label for="option2">Option 2 (Ctrl+Shift+M for matrix)</label>
+            <input type="text" name="option2" id="option2" class="form-control scientific-input">
+        </div>
+        <div class="form-group">
+            <label for="option3">Option 3 (Ctrl+Shift+M for matrix)</label>
+            <input type="text" name="option3" id="option3" class="form-control scientific-input">
+        </div>
+        <div class="form-group">
+            <label for="option4">Option 4 (Ctrl+Shift+M for matrix)</label>
+            <input type="text" name="option4" id="option4" class="form-control scientific-input">
+        </div>
+    </div>
+    <div id="single_correct" style="display:none;">
+        <label for="correct_option">Correct Option</label>
+        <select name="correct_option" id="correct_option" class="form-control">
+            <option value="">Select Correct Option</option>
+            <option value="option1">Option 1</option>
+            <option value="option2">Option 2</option>
+            <option value="option3">Option 3</option>
+            <option value="option4">Option 4</option>
+        </select>
+    </div>
+    <div id="multi_correct" style="display:none;">
+        <label>Correct Options</label>
+        <div>
+            <input type="checkbox" name="correct_options" value="option1"> Option 1<br>
+            <input type="checkbox" name="correct_options" value="option2"> Option 2<br>
+            <input type="checkbox" name="correct_options" value="option3"> Option 3<br>
+            <input type="checkbox" name="correct_options" value="option4"> Option 4<br>
+        </div>
+    </div>
+    <div id="numerical_field" style="display:none;">
+        <label for="correct_value">Correct Value</label>
+        <input type="text" name="correct_value" id="correct_value" class="form-control">
+    </div>
+    <button type="submit" class="button button-primary">Add Question</button>
+</form>
+<h3>Questions</h3>
+<ul>
+    {% for question in questions %}
+        <li>
+            {{ question.subject }} ({{ question.question_type }}): {{ question.text|safe }}
+            {% if question.image %}
+                <br><img src="{{ question.image.url }}" alt="Question Image" style="max-width: 200px;">
+            {% endif %}
+            {% if question.question_type != 'NUMERICAL' %}
+                <ul>
+                    <li>1: {{ question.option1|safe }}</li>
+                    <li>2: {{ question.option2|safe }}</li>
+                    <li>3: {{ question.option3|safe }}</li>
+                    <li>4: {{ question.option4|safe }}</li>
+                    <li>Correct: {{ question.correct_option }}</li>
+                </ul>
+            {% else %}
+                <p>Correct: {{ question.correct_option }}</p>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+<h3>Question Count Requirements</h3>
+<ul>
+    {% for subject, count in question_count.items %}
+        <li>{{ subject }}:
+            {% if count is mapping %}
+                {% for type, num in count.items %}
+                    {{ type }}: {{ num }}
+                {% endfor %}
+            {% else %}
+                {{ count }} total
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}
