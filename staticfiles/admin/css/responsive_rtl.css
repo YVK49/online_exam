@@ -28,20 +28,58 @@
         margin-left: 0;
     }
 
+<<<<<<< HEAD
+=======
+    [dir="rtl"] .inline-group ul.tools a.add,
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     [dir="rtl"] .inline-group div.add-row a,
     [dir="rtl"] .inline-group .tabular tr.add-row td a {
         padding: 8px 26px 8px 10px;
         background-position: calc(100% - 8px) 9px;
     }
 
+<<<<<<< HEAD
+=======
+    [dir="rtl"] .selector .selector-filter label {
+        margin-right: 0;
+        margin-left: 8px;
+    }
+
+    [dir="rtl"] .object-tools li {
+        float: right;
+    }
+
+    [dir="rtl"] .object-tools li + li {
+        margin-left: 0;
+        margin-right: 15px;
+    }
+
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     [dir="rtl"] .dashboard .module table td a {
         padding-left: 0;
         padding-right: 16px;
     }
 
+<<<<<<< HEAD
     [dir="rtl"] ul.messagelist li {
         padding: 10px 55px 10px 10px;
         background-position-x: calc(100% - 30px);
+=======
+    [dir="rtl"] .selector-add {
+        background-position: 0 -80px;
+    }
+
+    [dir="rtl"] .selector-remove {
+        background-position: 0 -120px;
+    }
+
+    [dir="rtl"] .active.selector-add:focus, .active.selector-add:hover {
+        background-position: 0 -100px;
+    }
+
+    [dir="rtl"] .active.selector-remove:focus, .active.selector-remove:hover {
+        background-position: 0 -140px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     }
 }
 
@@ -63,11 +101,14 @@
         margin-left: 0;
         margin-right: 0;
     }
+<<<<<<< HEAD
 
     [dir="rtl"] .object-tools {
         text-align: right;
     }
 
+=======
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     [dir="rtl"] .aligned .vCheckboxLabel {
         padding: 1px 5px 0 0;
     }
@@ -76,6 +117,7 @@
         background-position: 0 0;
     }
 
+<<<<<<< HEAD
     [dir="rtl"] :enabled.selector-remove:focus, :enabled.selector-remove:hover {
         background-position: 0 -24px;
     }
@@ -91,5 +133,17 @@
     [dir="rtl"] ul.messagelist li {
         padding: 10px 40px 10px 10px;
         background-position-x: calc(100% - 15px);
+=======
+    [dir="rtl"] .active.selector-remove:focus, .active.selector-remove:hover {
+        background-position: 0 -20px;
+    }
+
+    [dir="rtl"] .selector-add  {
+        background-position: 0 -40px;
+    }
+
+    [dir="rtl"] .active.selector-add:focus, .active.selector-add:hover {
+        background-position: 0 -60px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     }
 }

@@ -34,6 +34,7 @@ html[data-theme="light"],
 
     --error-fg: #ba2121;
 
+<<<<<<< HEAD
     --message-debug-bg: #efefef;
     --message-debug-icon: url(../img/icon-debug.svg);
     --message-info-bg: #ccefff;
@@ -44,6 +45,11 @@ html[data-theme="light"],
     --message-warning-icon: url(../img/icon-alert.svg);
     --message-error-bg: #ffefef;
     --message-error-icon: url(../img/icon-no.svg);
+=======
+    --message-success-bg: #dfd;
+    --message-warning-bg: #ffc;
+    --message-error-bg: #ffefef;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 
     --darkened-bg: #f8f8f8; /* A bit darker than --body-bg */
     --selected-bg: #e4e4e4; /* E.g. selected table cells */
@@ -125,6 +131,7 @@ a:focus {
     text-decoration: underline;
 }
 
+<<<<<<< HEAD
 a:not(
     [role="button"],
     #header a,
@@ -135,6 +142,8 @@ a:not(
     text-decoration: underline;
 }
 
+=======
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 a img {
     border: none;
 }
@@ -243,10 +252,17 @@ details summary {
 
 blockquote {
     font-size: 0.6875rem;
+<<<<<<< HEAD
     color: var(--body-quiet-color);
     margin-left: 2px;
     padding-left: 10px;
     border-left: 5px solid currentColor;
+=======
+    color: #777;
+    margin-left: 2px;
+    padding-left: 10px;
+    border-left: 5px solid #ddd;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 code, pre {
@@ -645,6 +661,7 @@ ul.messagelist li {
     font-size: 0.8125rem;
     padding: 10px 10px 10px 65px;
     margin: 0 0 10px 0;
+<<<<<<< HEAD
     color: var(--body-fg);
     word-break: break-word;
     background-color: var(--message-info-bg);
@@ -683,6 +700,22 @@ ul.messagelist li.error {
   ul.messagelist li {
       border: 1px solid;
   }
+=======
+    background: var(--message-success-bg) url(../img/icon-yes.svg) 40px 12px no-repeat;
+    background-size: 16px auto;
+    color: var(--body-fg);
+    word-break: break-word;
+}
+
+ul.messagelist li.warning {
+    background: var(--message-warning-bg) url(../img/icon-alert.svg) 40px 14px no-repeat;
+    background-size: 14px auto;
+}
+
+ul.messagelist li.error {
+    background: var(--message-error-bg) url(../img/icon-no.svg) 40px 12px no-repeat;
+    background-size: 16px auto;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 .errornote {
@@ -809,6 +842,7 @@ a.deletelink:focus, a.deletelink:hover {
 /* OBJECT TOOLS */
 
 .object-tools {
+<<<<<<< HEAD
     padding: 0;
     overflow: hidden;
     text-align: right;
@@ -822,6 +856,21 @@ a.deletelink:focus, a.deletelink:hover {
 
 .object-tools li + li {
     margin-left: 15px;
+=======
+    font-size: 0.625rem;
+    font-weight: bold;
+    padding-left: 0;
+    float: right;
+    position: relative;
+    margin-top: -48px;
+}
+
+.object-tools li {
+    display: block;
+    float: left;
+    margin-left: 5px;
+    height: 1rem;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 .object-tools a {
@@ -1161,6 +1210,7 @@ a.deletelink:focus, a.deletelink:hover {
     line-height: 22px;
     margin: 0;
     border-top: 1px solid var(--hairline-color);
+<<<<<<< HEAD
     box-sizing: border-box;
 }
 
@@ -1181,11 +1231,19 @@ a.deletelink:focus, a.deletelink:hover {
 }
 
 .paginator a:not(.showall) {
+=======
+    width: 100%;
+}
+
+.paginator a:link, .paginator a:visited {
+    padding: 2px 6px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     background: var(--button-bg);
     text-decoration: none;
     color: var(--button-fg);
 }
 
+<<<<<<< HEAD
 .paginator a[aria-current="page"] {
     color: var(--body-quiet-color);
     background: transparent;
@@ -1195,6 +1253,31 @@ a.deletelink:focus, a.deletelink:hover {
 
 .paginator a:not([aria-current="page"], .showall):focus,
 .paginator a:not([aria-current="page"], .showall):hover {
+=======
+.paginator a.showall {
+    border: none;
+    background: none;
+    color: var(--link-fg);
+}
+
+.paginator a.showall:focus, .paginator a.showall:hover {
+    background: none;
+    color: var(--link-hover-color);
+}
+
+.paginator .end {
+    margin-right: 6px;
+}
+
+.paginator .this-page {
+    padding: 2px 6px;
+    font-weight: bold;
+    font-size: 0.8125rem;
+    vertical-align: top;
+}
+
+.paginator a:focus, .paginator a:hover {
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     color: white;
     background: var(--link-hover-color);
 }

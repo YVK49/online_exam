@@ -1,5 +1,6 @@
 /* CHANGELISTS */
 
+<<<<<<< HEAD
 #changelist .changelist-form-container {
     display: flex;
     flex-wrap: wrap;
@@ -17,6 +18,17 @@
 
 #changelist .changelist-form-container:has(#changelist-filter) > div {
     max-width: calc(100% - 270px);
+=======
+#changelist {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+#changelist .changelist-form-container {
+    flex: 1 1 auto;
+    min-width: 0;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 #changelist table {
@@ -33,8 +45,13 @@
     min-height: 400px;
 }
 
+<<<<<<< HEAD
 .change-list .filtered .results, .filtered #toolbar,
 .filtered div.xfull {
+=======
+.change-list .filtered .results, .change-list .filtered .paginator,
+.filtered #toolbar, .filtered div.xfull {
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     width: auto;
 }
 
@@ -51,6 +68,7 @@
     border-bottom: 1px solid var(--hairline-color);
 }
 
+<<<<<<< HEAD
 #changelist .changelist-footer {
     display: flex;
     align-items: center;
@@ -67,15 +85,21 @@
     padding: 0;
 }
 
+=======
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 #changelist .paginator {
     color: var(--body-quiet-color);
     border-bottom: 1px solid var(--hairline-color);
     background: var(--body-bg);
+<<<<<<< HEAD
 }
 
 #changelist .paginator ul {
     padding: 0;
     white-space: nowrap;
+=======
+    overflow: hidden;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 /* CHANGELIST TABLES */

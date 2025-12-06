@@ -2,7 +2,11 @@
 
 .selector {
     display: flex;
+<<<<<<< HEAD
     flex: 1;
+=======
+    flex-grow: 1;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     gap: 0 10px;
 }
 
@@ -14,20 +18,31 @@
 }
 
 .selector-available, .selector-chosen {
+<<<<<<< HEAD
+=======
+    text-align: center;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     display: flex;
     flex-direction: column;
     flex: 1 1;
 }
 
+<<<<<<< HEAD
 .selector-available-title, .selector-chosen-title {
+=======
+.selector-available h2, .selector-chosen h2 {
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     border: 1px solid var(--border-color);
     border-radius: 4px 4px 0 0;
 }
 
+<<<<<<< HEAD
 .selector .helptext {
     font-size: 0.6875rem;
 }
 
+=======
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 .selector-chosen .list-footer-display {
     border: 1px solid var(--border-color);
     border-top: none;
@@ -43,6 +58,7 @@
     color: var(--breadcrumbs-fg);
 }
 
+<<<<<<< HEAD
 .selector-chosen-title {
     background: var(--secondary);
     color: var(--header-link-color);
@@ -62,6 +78,16 @@
 
 .selector-available-title label {
     width: 100%;
+=======
+.selector-chosen h2 {
+    background: var(--secondary);
+    color: var(--header-link-color);
+}
+
+.selector .selector-available h2 {
+    background: var(--darkened-bg);
+    color: var(--body-quiet-color);
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 .selector .selector-filter {
@@ -73,7 +99,10 @@
     margin: 0;
     text-align: left;
     display: flex;
+<<<<<<< HEAD
     gap: 8px;
+=======
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 .selector .selector-filter label,
@@ -92,9 +121,20 @@
     flex-grow: 1;
 }
 
+<<<<<<< HEAD
 .selector ul.selector-chooser {
     align-self: center;
     width: 30px;
+=======
+.selector .selector-available input,
+.selector .selector-chosen input {
+    margin-left: 8px;
+}
+
+.selector ul.selector-chooser {
+    align-self: center;
+    width: 22px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     background-color: var(--selected-bg);
     border-radius: 10px;
     margin: 0;
@@ -124,13 +164,19 @@
 }
 
 .selector-add, .selector-remove {
+<<<<<<< HEAD
     width: 24px;
     height: 24px;
+=======
+    width: 16px;
+    height: 16px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     display: block;
     text-indent: -3000px;
     overflow: hidden;
     cursor: default;
     opacity: 0.55;
+<<<<<<< HEAD
     border: none;
 }
 
@@ -139,10 +185,20 @@
 }
 
 :enabled.selector-add:hover, :enabled.selector-remove:hover {
+=======
+}
+
+.active.selector-add, .active.selector-remove {
+    opacity: 1;
+}
+
+.active.selector-add:hover, .active.selector-remove:hover {
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     cursor: pointer;
 }
 
 .selector-add {
+<<<<<<< HEAD
     background: url(../img/selector-icons.svg) 0 -144px no-repeat;
     background-size: 24px auto;
 }
@@ -192,6 +248,66 @@
 }
 
 :enabled.selector-clearall:focus, :enabled.selector-clearall:hover {
+=======
+    background: url(../img/selector-icons.svg) 0 -96px no-repeat;
+}
+
+.active.selector-add:focus, .active.selector-add:hover {
+    background-position: 0 -112px;
+}
+
+.selector-remove {
+    background: url(../img/selector-icons.svg) 0 -64px no-repeat;
+}
+
+.active.selector-remove:focus, .active.selector-remove:hover {
+    background-position: 0 -80px;
+}
+
+a.selector-chooseall, a.selector-clearall {
+    display: inline-block;
+    height: 16px;
+    text-align: left;
+    margin: 0 auto;
+    overflow: hidden;
+    font-weight: bold;
+    line-height: 16px;
+    color: var(--body-quiet-color);
+    text-decoration: none;
+    opacity: 0.55;
+}
+
+a.active.selector-chooseall:focus, a.active.selector-clearall:focus,
+a.active.selector-chooseall:hover, a.active.selector-clearall:hover {
+    color: var(--link-fg);
+}
+
+a.active.selector-chooseall, a.active.selector-clearall {
+    opacity: 1;
+}
+
+a.active.selector-chooseall:hover, a.active.selector-clearall:hover {
+    cursor: pointer;
+}
+
+a.selector-chooseall {
+    padding: 0 18px 0 0;
+    background: url(../img/selector-icons.svg) right -160px no-repeat;
+    cursor: default;
+}
+
+a.active.selector-chooseall:focus, a.active.selector-chooseall:hover {
+    background-position: 100% -176px;
+}
+
+a.selector-clearall {
+    padding: 0 0 0 18px;
+    background: url(../img/selector-icons.svg) 0 -128px no-repeat;
+    cursor: default;
+}
+
+a.active.selector-clearall:focus, a.active.selector-clearall:hover {
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     background-position: 0 -144px;
 }
 
@@ -221,9 +337,14 @@
 }
 
 .stacked ul.selector-chooser {
+<<<<<<< HEAD
     display: flex;
     height: 30px;
     width: 64px;
+=======
+    height: 22px;
+    width: 50px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     margin: 0 0 10px 40%;
     background-color: #eee;
     border-radius: 10px;
@@ -240,6 +361,7 @@
 }
 
 .stacked .selector-add {
+<<<<<<< HEAD
     background: url(../img/selector-icons.svg) 0 -48px no-repeat;
     background-size: 24px auto;
     cursor: default;
@@ -252,22 +374,47 @@
 
 .stacked :enabled.selector-add:focus, .stacked :enabled.selector-add:hover {
     background-position: 0 -72px;
+=======
+    background: url(../img/selector-icons.svg) 0 -32px no-repeat;
+    cursor: default;
+}
+
+.stacked .active.selector-add {
+    background-position: 0 -32px;
+    cursor: pointer;
+}
+
+.stacked .active.selector-add:focus, .stacked .active.selector-add:hover {
+    background-position: 0 -48px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     cursor: pointer;
 }
 
 .stacked .selector-remove {
     background: url(../img/selector-icons.svg) 0 0 no-repeat;
+<<<<<<< HEAD
     background-size: 24px auto;
     cursor: default;
 }
 
 .stacked :enabled.selector-remove {
+=======
+    cursor: default;
+}
+
+.stacked .active.selector-remove {
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     background-position: 0 0px;
     cursor: pointer;
 }
 
+<<<<<<< HEAD
 .stacked :enabled.selector-remove:focus, .stacked :enabled.selector-remove:hover {
     background-position: 0 -24px;
+=======
+.stacked .active.selector-remove:focus, .stacked .active.selector-remove:hover {
+    background-position: 0 -16px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     cursor: pointer;
 }
 
@@ -301,10 +448,13 @@ p.datetime {
     font-weight: bold;
 }
 
+<<<<<<< HEAD
 p.datetime label {
     display: inline;
 }
 
+=======
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 .datetime span {
     white-space: nowrap;
     font-weight: normal;
@@ -327,30 +477,49 @@ table p.datetime {
     position: relative;
     display: inline-block;
     vertical-align: middle;
+<<<<<<< HEAD
     height: 24px;
     width: 24px;
+=======
+    height: 16px;
+    width: 16px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     overflow: hidden;
 }
 
 .datetimeshortcuts .clock-icon {
     background: url(../img/icon-clock.svg) 0 0 no-repeat;
+<<<<<<< HEAD
     background-size: 24px auto;
+=======
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 .datetimeshortcuts a:focus .clock-icon,
 .datetimeshortcuts a:hover .clock-icon {
+<<<<<<< HEAD
     background-position: 0 -24px;
+=======
+    background-position: 0 -16px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 .datetimeshortcuts .date-icon {
     background: url(../img/icon-calendar.svg) 0 0 no-repeat;
+<<<<<<< HEAD
     background-size: 24px auto;
+=======
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
     top: -1px;
 }
 
 .datetimeshortcuts a:focus .date-icon,
 .datetimeshortcuts a:hover .date-icon {
+<<<<<<< HEAD
     background-position: 0 -24px;
+=======
+    background-position: 0 -16px;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 .timezonewarning {
@@ -568,12 +737,19 @@ ul.timelist, .timelist li {
 .inline-deletelink {
     float: right;
     text-indent: -9999px;
+<<<<<<< HEAD
     background: url(../img/inline-delete.svg) center center no-repeat;
     background-size: contain;
     width: 1.5rem;
     height: 1.5rem;
     border: 0px none;
     margin-bottom: .25rem;
+=======
+    background: url(../img/inline-delete.svg) 0 0 no-repeat;
+    width: 16px;
+    height: 16px;
+    border: 0px none;
+>>>>>>> 1809d5fa0d72951630748801c8b41425097d079e
 }
 
 .inline-deletelink:focus, .inline-deletelink:hover {
